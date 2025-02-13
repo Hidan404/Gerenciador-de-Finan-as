@@ -19,6 +19,11 @@ class Conta(sqlmodel.SQLModel, table=True):
     usuario_id: int
     status: StatusConta = sqlmodel.Field(default=StatusConta.ATIVA)
 
+class historico(sqlmodel.SQLModel, table=True):
+    id: int = sqlmodel.Field(default=None, primary_key=True)
+    conta_id: int = sqlmodel.Field(foreign_key="Conta.id")
+
+    
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"    
 

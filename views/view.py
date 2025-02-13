@@ -82,6 +82,9 @@ def transferir_saldo(conta_origem_id, conta_destino_id, valor):
             print("Conta de destino não encontrada")
             return
 
+        taxa = 0.01
+        valor -= valor * taxa
+
         conta_destino = results[0]
         conta_origem.saldo -= valor
         conta_destino.saldo += valor
