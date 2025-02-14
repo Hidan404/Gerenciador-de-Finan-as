@@ -1,5 +1,7 @@
 import sqlmodel
+from sqlmodel import Relationship
 import enum
+from datetime import date
 
 class Bancos(enum.Enum):
     NUBANK = "Nubank"
@@ -10,6 +12,10 @@ class StatusConta(enum.Enum):
     ATIVA = "Ativa"
     INATIVA = "Inativa"
 
+class Tipos(enum.Enum):
+    ENTRADA = "Entrada"
+    SAIDA = "Saida"    
+
 class Conta(sqlmodel.SQLModel, table=True):
     id: int = sqlmodel.Field(default=None, primary_key=True)
     nome: str
@@ -19,9 +25,17 @@ class Conta(sqlmodel.SQLModel, table=True):
     usuario_id: int
     status: StatusConta = sqlmodel.Field(default=StatusConta.ATIVA)
 
-class historico(sqlmodel.SQLModel, table=True):
+    historicos: list["Historico"] = Relationship(back_populates="conta")
+
+class Historico(sqlmodel.SQLModel, table=True):
     id: int = sqlmodel.Field(default=None, primary_key=True)
-    conta_id: int = sqlmodel.Field(foreign_key="Conta.id")
+    conta_id: int = sqlmodel.Field(foreign_key="conta.id")
+    
+    tipo: Tipos = sqlmodel.Field(default=Tipos.ENTRADA)
+    valor: float
+    data: date
+
+    conta: Conta = Relationship(back_populates="historicos")
 
     
 sqlite_file_name = "database.db"

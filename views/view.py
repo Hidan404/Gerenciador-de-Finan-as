@@ -1,4 +1,4 @@
-from model.models import Conta, engine, Bancos, StatusConta
+from model.models import Conta, engine, Bancos, StatusConta, Historico, Tipos
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
@@ -93,6 +93,24 @@ def transferir_saldo(conta_origem_id, conta_destino_id, valor):
         session.commit()
 
         return conta_origem, conta_destino   
+    
+def movimentar_dinheiro(historico: Historico):
+    with Session(engine) as session:
+        statement = select(Conta).where(Conta.id == historico.conta_id)
+        results = session.execute(statement).scalars().all()
+
+        if not results:
+            print("Conta não encontrada")
+            return
+
+        conta = results[0]
+        if historico.tipo == Tipos.SAIDA and conta.saldo < historico.valor:
+            print("Saldo insuficiente")
+            return
+
+        conta.saldo += historico.valor
+        session.add(conta)
+        session.commit()
 
 conta = Conta(nome = "Sabrina", banco = Bancos.SANTANDER, tipo = "Conta Corrente", saldo = 3000.0, usuario_id = 2, status = StatusConta.ATIVA) 
 conta2 = Conta(nome = "hidan", banco = Bancos.INTER, tipo = "Conta Corrente", saldo = 3000.0, usuario_id = 2, status = StatusConta.ATIVA) 
