@@ -3,6 +3,7 @@ from sqlmodel import Relationship
 import enum
 from datetime import date
 
+
 class Bancos(enum.Enum):
     NUBANK = "Nubank"
     SANTANDER = "Santander"

@@ -2,6 +2,7 @@ from model.models import Conta, engine, Bancos, StatusConta, Historico, Tipos
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from datetime import date, timedelta
+import matplotlib.pyplot as plt
 
 def criar_conta(conta: Conta):
     with Session(engine) as session:
@@ -137,7 +138,20 @@ def buscar_historico_entre_datas(data_inicial, data_final):
         results = session.execute(statement)
         historicos = results.scalars().all()
 
-        return historicos        
+        return historicos     
+
+def plotar_grafico():
+    with Session(engine) as session:
+        statement = select(Conta).where(Conta.status == StatusConta.ATIVA)
+        results = session.execute(statement).scalars().all()
+        bancos = []
+        saldos = []
+        for conta in results:
+            bancos.append(conta.banco.value)
+            saldos.append(conta.saldo)  
+
+        plt.bar(bancos, saldos)      
+        plt.show()    
 
 conta = Conta(nome = "Sabrina", banco = Bancos.SANTANDER, tipo = "Conta Corrente", saldo = 3000.0, usuario_id = 2, status = StatusConta.ATIVA) 
 conta2 = Conta(nome = "hidan", banco = Bancos.INTER, tipo = "Conta Corrente", saldo = 3000.0, usuario_id = 2, status = StatusConta.ATIVA) 
@@ -158,3 +172,5 @@ with Session(engine) as session:
 
 print(total_contas())
 print(buscar_historico_entre_datas(date.today() - timedelta(days=1), date.today() + timedelta(days=1)))
+
+plotar_grafico()
