@@ -25,7 +25,7 @@ class Conta(sqlmodel.SQLModel, table=True):
     usuario_id: int
     status: StatusConta = sqlmodel.Field(default=StatusConta.ATIVA)
 
-    historicos: list["Historico"] = Relationship(back_populates="conta")
+    historicos: list["Historico"] = Relationship(back_populates="conta", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
 class Historico(sqlmodel.SQLModel, table=True):
     id: int = sqlmodel.Field(default=None, primary_key=True)

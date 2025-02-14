@@ -1,7 +1,7 @@
 from model.models import Conta, engine, Bancos, StatusConta, Historico, Tipos
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-
+from datetime import date, timedelta
 
 def criar_conta(conta: Conta):
     with Session(engine) as session:
@@ -98,7 +98,7 @@ def movimentar_dinheiro(historico: Historico):
     with Session(engine) as session:
         statement = select(Conta).where(Conta.id == historico.conta_id)
         results = session.execute(statement).scalars().all()
-
+        #TODO: validar se a conta esta ativa
         if not results:
             print("Conta não encontrada")
             return
@@ -107,16 +107,54 @@ def movimentar_dinheiro(historico: Historico):
         if historico.tipo == Tipos.SAIDA and conta.saldo < historico.valor:
             print("Saldo insuficiente")
             return
+        
+        if historico.tipo == Tipos.ENTRADA:
+            conta.saldo += historico.valor
+        else:
+            conta.saldo -= historico.valor    
 
         conta.saldo += historico.valor
         session.add(conta)
         session.commit()
+        print("Movimentação realizada com sucesso")
+
+
+def total_contas():
+    with Session(engine) as session:
+        statement = select(Conta)
+        results = session.execute(statement)
+        contas = results.scalars().all()
+
+        total = 0
+        for conta in contas:
+            total += conta.saldo
+
+        return total    
+
+def buscar_historico_entre_datas(data_inicial, data_final):
+    with Session(engine) as session:
+        statement = select(Historico).where(Historico.data >= data_inicial).where(Historico.data <= data_final)
+        results = session.execute(statement)
+        historicos = results.scalars().all()
+
+        return historicos        
 
 conta = Conta(nome = "Sabrina", banco = Bancos.SANTANDER, tipo = "Conta Corrente", saldo = 3000.0, usuario_id = 2, status = StatusConta.ATIVA) 
 conta2 = Conta(nome = "hidan", banco = Bancos.INTER, tipo = "Conta Corrente", saldo = 3000.0, usuario_id = 2, status = StatusConta.ATIVA) 
 conta3 = Conta(nome = "konan", banco = Bancos.INTER, tipo = "Conta Corrente", saldo = 3000.0, usuario_id = 3, status = StatusConta.ATIVA)
 criar_conta(conta3)
-print(listar_contas())
-print(desativar_conta(2))
-print(transferir_saldo(2, 3, 1000))
 
+
+historico = Historico(conta_id = 3, tipo = Tipos.ENTRADA, valor = 100.0, data = date.today())
+
+movimentar_dinheiro(historico)
+
+with Session(engine) as session:
+    statement = select(Historico)
+    results = session.execute(statement).scalars().all()
+
+    for h in results:
+        print(h)
+
+print(total_contas())
+print(buscar_historico_entre_datas(date.today() - timedelta(days=1), date.today() + timedelta(days=1)))
